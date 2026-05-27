@@ -3,7 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 from config.settings import settings
 from ingestion.chunker import chunk_pages
@@ -35,6 +38,11 @@ class SimplifyTitleRequest(BaseModel):
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/llms.txt", response_class=FileResponse)
+def llms_txt() -> FileResponse:
+    return FileResponse(_STATIC_DIR / "llms.txt", media_type="text/plain")
 
 
 @app.post("/simplify-title")

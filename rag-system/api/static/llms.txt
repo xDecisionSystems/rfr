@@ -1,0 +1,34 @@
+# Research RAG API
+
+> Self-hosted retrieval-augmented generation service for academic papers. Ingests PDFs,
+> stores embeddings in a native Qdrant vector store, and answers research questions with
+> grounded inline citations via Azure OpenAI. Also generates structured filename slugs
+> from paper bibliographic metadata. Deployed at https://rfr.xds-lab.com — no Docker,
+> runs natively in a Debian Proxmox LXC.
+
+Key notes:
+- All endpoints are unauthenticated (internal service).
+- Answers are strictly grounded in ingested documents — the model will reply `I don't know.` if the context does not support an answer.
+- Qdrant collection is auto-created on first ingest; querying before any ingest returns an empty result, not an error.
+- `POST /simplify-title` requires only `title`; `author`, `venue`, and `year` are optional and each adds a segment to the output filename.
+- Re-ingesting the same PDFs is safe — chunk IDs are content-addressed and Qdrant upserts are idempotent.
+
+## Endpoints
+
+- [GET /health](https://rfr.xds-lab.com/health): Liveness check. Returns `{"status": "ok"}`.
+- [POST /ingest](https://rfr.xds-lab.com/docs#/default/ingest_documents_ingest_post): Ingest all PDFs in a folder — chunk, embed, and store in Qdrant. Body: `{"folder_path": "..."}`.
+- [POST /query](https://rfr.xds-lab.com/docs#/default/query_documents_query_post): Answer a research question from ingested documents. Body: `{"question": "...", "top_k": 5}`. Returns answer with inline citations and source list.
+- [POST /simplify-title](https://rfr.xds-lab.com/docs#/default/simplify_title_endpoint_simplify_title_post): Generate a structured filename slug. Body: `{"title": "...", "author": "...", "venue": "...", "year": 2023}`. Returns `{"filename": "<title_slug>-<last_name>-<venue_acronym>-<YYYY>"}`.
+- [GET /llms.txt](https://rfr.xds-lab.com/llms.txt): This file.
+
+## Docs
+
+- [Interactive API docs](https://rfr.xds-lab.com/docs): Auto-generated Swagger UI with live request/response examples for all endpoints.
+- [Architecture reference](https://github.com/xDecisionSystems/rfr/blob/main/ARCHITECTURE.md): Data flow, chunking strategy, Qdrant payload schema, config table, and deployment topology.
+- [AGENTS.md](https://github.com/xDecisionSystems/rfr/blob/main/AGENTS.md): Coding rules, change workflow, and commit message format for agents working on this repo.
+
+## Optional
+
+- [Qdrant documentation](https://qdrant.tech/documentation/): Reference for the vector store used by this service — collection config, search parameters, payload filtering.
+- [Azure OpenAI documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/): Reference for the embedding and chat deployments used for ingestion and answer generation.
+- [llmstxt.org specification](https://llmstxt.org/): Specification this file follows.
