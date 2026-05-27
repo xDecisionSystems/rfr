@@ -55,12 +55,24 @@ question → embed_texts([question]) → qdrant.search() → generate_answer() �
 4. Call Azure OpenAI chat model with a strict citation prompt.
 5. Return answer text and deduplicated source list `[{source, page, chunk_id, score}]`.
 
+### Title Simplification (`POST /simplify-title`)
+
+```
+title(+optional author/venue/year) → simplify_title() → structured filename slug
+```
+
+1. Validate `title` is non-empty.
+2. Generate a title slug with Azure OpenAI chat.
+3. Optionally append author last name slug, venue acronym slug, and year.
+4. Return a compound filename string for downstream paper-library workflows.
+
 ## 4. Endpoint Map
 
 - `GET /health` — liveness check; returns `{"status": "ok"}`.
+- `GET /llms.txt` — static `llms.txt` descriptor served from `api/static/llms.txt` with `text/plain` media type.
+- `POST /simplify-title` — body: `{"title": "...", "author": "...", "venue": "...", "year": 2024}` where only `title` is required. Returns `{"title": "...", "author": "...", "venue": "...", "year": 2024, "filename": "<title_slug>-<last_name>-<venue_acronym>-<YYYY>"}`.
 - `POST /ingest` — body: `{"folder_path": "<path>"}` (default: `data/papers/`). Loads all PDFs in the folder, chunks, embeds, and stores them.
 - `POST /query` — body: `{"question": "<text>", "top_k": 5}`. Returns `{"answer": "<text>", "sources": [...]}`.
-- `POST /simplify-title` — body: `{"title": "<full paper title>"}`. Calls the Azure OpenAI chat model to produce a 4–6 word snake_case slug for use as a PDF filename component in the paper-library service. Returns `{"title": "<original>", "slug": "<snake_case_slug>"}`. Used by the paper-library upload workflow: caller POSTs the title here, patches the `title_slug` field on the paper record, then uploads the PDF.
 
 ## 5. Data Contracts
 
@@ -86,6 +98,18 @@ question → embed_texts([question]) → qdrant.search() → generate_answer() �
   "sources": [
     {"source": "paper.pdf", "page": 3, "chunk_id": "paper-p3-c1-abc123", "score": 0.91}
   ]
+}
+```
+
+### `/simplify-title` response
+
+```json
+{
+  "title": "A Very Long Research Paper Title",
+  "author": "Jane Doe",
+  "venue": "Conference on Neural Information Processing Systems",
+  "year": 2024,
+  "filename": "long_research_title-doe-neurips-2024"
 }
 ```
 

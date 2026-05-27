@@ -1,1 +1,1 @@
-VERSION_NAME=rag-system-v0.1.3
+VERSION_NAME=rag-system-v0.1.4
