@@ -66,43 +66,47 @@ A self-hosted research RAG system deployed in a single Proxmox LXC. No Docker. A
 - Qdrant should only listen on localhost (port 6333) — do not expose externally without authentication.
 - Do not execute or eval anything extracted from PDFs.
 
-## 6. Git Commit Message (Mandatory)
+## 6. Git Commit Message (On Request Only)
 
-After every change, output a ready-to-use git commit message in this exact format:
+Only output a git commit message when the user explicitly asks for one (e.g. "give me a commit message", "what's the commit?", "git message").
+
+When requested, cover **all changes since the last commit** — not just the most recent task. Check `git diff` or `git status` to identify everything that has changed.
+
+Format:
 
 ```
 <type>(<scope>): <short imperative summary under 72 chars>
 
-<body — what changed and why, wrapped at 72 chars. Omit if the
-subject line is self-explanatory.>
+<body — what changed and why, wrapped at 72 chars. List each
+logical change as a bullet if multiple changes are bundled.>
 
-Files: <comma-separated list of files changed>
-Version: <new VERSION_NAME value>
+Files: <comma-separated list of all changed files>
+Version: <current VERSION_NAME value>
 ```
 
 **Type** must be one of: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`.
-**Scope** is the top-level directory or module affected (e.g. `services`, `api`, `ingestion`, `deploy`, `config`).
+Use `feat` if any new capability was added, even alongside fixes or docs.
+**Scope** is the broadest top-level area affected, or `root` for repo-level changes.
 
 Output the commit message in a fenced code block so the user can copy it directly.
-Do not suggest committing `.env` or any file matching `.gitignore`.
+Do not include `.env` or any file matching `.gitignore`.
 
-Examples:
-
-```
-feat(api): add POST /simplify-title endpoint for LLM-based title slugging
-
-Files: rag-system/api/main.py, rag-system/services/llm.py, ARCHITECTURE.md
-Version: rag-system-v0.1.1
-```
+Example:
 
 ```
-fix(services): narrow Qdrant UnexpectedResponse catch to 404 only
+feat(root): add README, llms.txt, expand /simplify-title, repo hygiene
 
-Re-raises non-404 errors so Qdrant crashes surface instead of
-silently returning empty results.
+- Add root README.md with quick start, API reference, deploy guide
+- Add api/static/llms.txt following llmstxt.org specification
+- Expand POST /simplify-title to accept author, venue, year and
+  return compound filename slug
+- Remove __pycache__ from git index, add .gitignore
+- Update ARCHITECTURE.md endpoint map and contracts
 
-Files: rag-system/services/vector_store.py
-Version: rag-system-v0.1.2
+Files: README.md, rag-system/api/main.py, rag-system/services/llm.py,
+       rag-system/api/static/llms.txt, ARCHITECTURE.md, .gitignore,
+       AGENTS.md, CLAUDE.md, VERSION.md, AGENT_LOG.md
+Version: rag-system-v0.1.5
 ```
 
 ## 7. Agent Handoff Log (Mandatory)

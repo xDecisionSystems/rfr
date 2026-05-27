@@ -6,6 +6,37 @@ Archive to `history/YYYY-MM.md` when this file exceeds 200 lines (keep 10 most r
 
 ---
 
+## [2026-05-27] claude-sonnet-4-6 — removed rag-system/README.md, single README at root
+
+**Action:** Deleted `rag-system/README.md` from the repo. The root `README.md` is now the sole documentation entry point.
+
+**Files changed:**
+- `rag-system/README.md` — deleted
+- `VERSION.md` — bumped to `rag-system-v0.1.7`
+- `AGENT_LOG.md` — prepended this entry
+
+**Decisions:** Having two READMEs caused duplication and confusion about which was authoritative. Root README covers everything the sub-README did, including deployment steps.
+
+**Open items:** None.
+
+---
+
+## [2026-05-27] claude-sonnet-4-6 — changed git commit message rule to on-request only
+
+**Action:** Updated `AGENTS.md §12` and `CLAUDE.md §6` so commit messages are only produced when the user explicitly asks, and when requested they cover all changes since the last commit rather than just the current task.
+
+**Files changed:**
+- `AGENTS.md` — §11 removes step 10 (auto commit message); §12 rewritten as on-request only with instruction to check git diff for all changes
+- `CLAUDE.md` — §6 rewritten with same on-request rule and bundled example
+- `VERSION.md` — bumped to `rag-system-v0.1.6`
+- `AGENT_LOG.md` — prepended this entry
+
+**Decisions:** Auto-emitting a commit message after every task is noisy and misleading when multiple changes are made before a real commit. On-request messaging with full diff coverage is more useful.
+
+**Open items:** None.
+
+---
+
 ## [2026-05-27] claude-sonnet-4-6 — added root README.md for GitHub repo
 
 **Action:** Created `README.md` at the repo root covering project overview, architecture diagram, repo layout, local dev quick start, full API reference with examples, Proxmox deployment instructions, configuration table, and links to further reading.
