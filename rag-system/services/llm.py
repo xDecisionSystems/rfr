@@ -31,6 +31,31 @@ def _render_context(context_chunks: list[dict]) -> str:
     return "\n\n".join(blocks)
 
 
+_SLUG_SYSTEM_PROMPT = (
+    "You are a filename generator for academic papers. "
+    "Return ONLY a snake_case slug — no punctuation, no stop words, lowercase. "
+    "The slug must be 4 to 6 meaningful content words joined by underscores. "
+    "Output nothing except the slug itself."
+)
+
+
+def simplify_title(title: str) -> str:
+    """Return a 4-6 word snake_case slug summarising the paper title."""
+    response = _client.chat.completions.create(
+        model=settings.chat_deployment_name,
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": _SLUG_SYSTEM_PROMPT},
+            {"role": "user", "content": title},
+        ],
+    )
+    raw = (response.choices[0].message.content or "").strip().lower()
+    # Sanitize: keep only word chars and underscores, collapse runs.
+    import re
+    slug = re.sub(r"[^\w]+", "_", raw).strip("_")
+    return slug or "untitled"
+
+
 def generate_answer(query: str, context_chunks: list[dict]) -> dict:
     if not context_chunks:
         return {"answer": "I don't know.", "sources": []}

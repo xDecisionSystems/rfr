@@ -101,17 +101,84 @@ When using multiple agents in parallel, assign disjoint file ownership.
 - Never write API keys to logs or response bodies.
 - Qdrant listens on localhost only by default; do not expose port 6333 externally without authentication.
 
-## 10. Change Workflow
+## 10. Agent Handoff Log (Mandatory)
 
-1. Identify which module is affected.
-2. Read that module and `config/settings.py`.
-3. Implement the smallest coherent change.
-4. Run syntax checks for affected files.
-5. Update `ARCHITECTURE.md` if data flow or component responsibilities changed.
-6. Update `.env.example` if new config keys were added.
-7. Summarize changes, assumptions, and residual risks.
+`AGENT_LOG.md` at the repo root is the shared memory between agents. Every agent — Claude, Codex, or any other — that touches this repo must participate in the loop.
 
-## 11. Definition of Done
+**Before starting any task:**
+1. Read `AGENT_LOG.md` in full.
+2. Note any open items relevant to your task.
+
+**After completing any task:**
+1. Prepend a new entry at the top of `AGENT_LOG.md` (newest entry first).
+2. Use this exact format:
+
+```markdown
+## [YYYY-MM-DD] <agent-name> — <one-line summary>
+**Action:** What was done and why.
+**Files changed:** List each file modified, created, or deleted.
+**Decisions:** Any non-obvious choices made and the reasoning.
+**Open items:** Anything left incomplete, deferred, or worth a follow-up.
+```
+
+3. If `AGENT_LOG.md` exceeds 200 lines, move all entries older than the 10 most recent into `history/YYYY-MM.md` (create the file if needed), then leave only the 10 most recent entries in `AGENT_LOG.md`.
+
+Do not skip this step. It is how the next agent — human or AI — knows what happened.
+
+## 11. Change Workflow
+
+1. Read `AGENT_LOG.md` to understand recent context and open items.
+2. Identify which module is affected.
+3. Read that module and `config/settings.py`.
+4. Implement the smallest coherent change.
+5. Run syntax checks for affected files.
+6. Update `ARCHITECTURE.md` if data flow or component responsibilities changed.
+7. Update `.env.example` if new config keys were added.
+8. Increment patch version in `VERSION.md`.
+9. Prepend a new entry to `AGENT_LOG.md` (see §10).
+10. Output a git commit message (see §12).
+11. Summarize changes, assumptions, and residual risks.
+
+## 12. Git Commit Message (Mandatory)
+
+After every change, output a ready-to-use git commit message in this exact format:
+
+```
+<type>(<scope>): <short imperative summary under 72 chars>
+
+<body — what changed and why, wrapped at 72 chars. Omit if the
+subject line is self-explanatory.>
+
+Files: <comma-separated list of files changed>
+Version: <new VERSION_NAME value>
+```
+
+**Type** must be one of: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`.
+**Scope** is the top-level directory or module affected (e.g. `services`, `api`, `ingestion`, `deploy`, `config`).
+
+Examples:
+
+```
+fix(services): narrow Qdrant UnexpectedResponse catch to 404 only
+
+Re-raises non-404 errors so Qdrant crashes surface instead of
+silently returning empty results.
+
+Files: services/vector_store.py
+Version: rag-system-v0.1.1
+```
+
+```
+feat(api): add top_k parameter to POST /query endpoint
+
+Files: api/main.py, ARCHITECTURE.md
+Version: rag-system-v0.1.2
+```
+
+Output the commit message in a fenced code block so the user can copy it directly.
+Do not suggest committing `.env` or any file matching `.gitignore`.
+
+## 13. Definition of Done
 
 - Code is syntactically valid.
 - Endpoint behavior matches `ARCHITECTURE.md`.

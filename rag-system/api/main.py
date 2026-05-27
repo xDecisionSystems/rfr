@@ -9,7 +9,7 @@ from config.settings import settings
 from ingestion.chunker import chunk_pages
 from ingestion.pdf_loader import load_pdf
 from services.embeddings import embed_texts
-from services.llm import generate_answer
+from services.llm import generate_answer, simplify_title
 from services.retriever import retrieve
 from services.vector_store import upsert
 
@@ -25,9 +25,28 @@ class QueryRequest(BaseModel):
     top_k: int = Field(default=settings.default_top_k, ge=1, le=20)
 
 
+class SimplifyTitleRequest(BaseModel):
+    title: str
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.post("/simplify-title")
+def simplify_title_endpoint(request: SimplifyTitleRequest) -> dict:
+    title = request.title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="title cannot be empty")
+    try:
+        slug = simplify_title(title)
+        return {"title": title, "slug": slug}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Title simplification failed: {exc}",
+        ) from exc
 
 
 @app.post("/ingest")

@@ -60,6 +60,7 @@ question → embed_texts([question]) → qdrant.search() → generate_answer() �
 - `GET /health` — liveness check; returns `{"status": "ok"}`.
 - `POST /ingest` — body: `{"folder_path": "<path>"}` (default: `data/papers/`). Loads all PDFs in the folder, chunks, embeds, and stores them.
 - `POST /query` — body: `{"question": "<text>", "top_k": 5}`. Returns `{"answer": "<text>", "sources": [...]}`.
+- `POST /simplify-title` — body: `{"title": "<full paper title>"}`. Calls the Azure OpenAI chat model to produce a 4–6 word snake_case slug for use as a PDF filename component in the paper-library service. Returns `{"title": "<original>", "slug": "<snake_case_slug>"}`. Used by the paper-library upload workflow: caller POSTs the title here, patches the `title_slug` field on the paper record, then uploads the PDF.
 
 ## 5. Data Contracts
 
