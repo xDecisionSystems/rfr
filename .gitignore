@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Qdrant storage
+rag-system/data/papers/*
+!rag-system/data/papers/.gitkeep

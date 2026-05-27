@@ -27,6 +27,9 @@ class QueryRequest(BaseModel):
 
 class SimplifyTitleRequest(BaseModel):
     title: str
+    author: str = Field(default="", description="Full name of first author")
+    venue: str = Field(default="", description="Journal or conference name")
+    year: int | None = Field(default=None, description="Publication year")
 
 
 @app.get("/health")
@@ -40,8 +43,19 @@ def simplify_title_endpoint(request: SimplifyTitleRequest) -> dict:
     if not title:
         raise HTTPException(status_code=400, detail="title cannot be empty")
     try:
-        slug = simplify_title(title)
-        return {"title": title, "slug": slug}
+        slug = simplify_title(
+            title=title,
+            author=request.author,
+            venue=request.venue,
+            year=request.year,
+        )
+        return {
+            "title": request.title,
+            "author": request.author,
+            "venue": request.venue,
+            "year": request.year,
+            "filename": slug,
+        }
     except Exception as exc:
         raise HTTPException(
             status_code=502,

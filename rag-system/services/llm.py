@@ -31,29 +31,69 @@ def _render_context(context_chunks: list[dict]) -> str:
     return "\n\n".join(blocks)
 
 
-_SLUG_SYSTEM_PROMPT = (
+import re
+
+_TITLE_SLUG_PROMPT = (
     "You are a filename generator for academic papers. "
-    "Return ONLY a snake_case slug — no punctuation, no stop words, lowercase. "
-    "The slug must be 4 to 6 meaningful content words joined by underscores. "
+    "Given a paper title, return ONLY a snake_case slug: lowercase, no stop words, "
+    "3 to 5 meaningful content words joined by underscores. "
+    "Output nothing except the slug itself."
+)
+
+_VENUE_SLUG_PROMPT = (
+    "You are a filename generator for academic papers. "
+    "Given a journal or conference name, return ONLY its standard abbreviation or acronym "
+    "in lowercase with no spaces or punctuation (e.g. 'ieee_tro', 'neurips', 'icra', 'nature'). "
+    "If it is already short, just lowercase and snake_case it. "
     "Output nothing except the slug itself."
 )
 
 
-def simplify_title(title: str) -> str:
-    """Return a 4-6 word snake_case slug summarising the paper title."""
+def _llm_slug(system_prompt: str, user_text: str) -> str:
     response = _client.chat.completions.create(
         model=settings.chat_deployment_name,
         temperature=0.0,
         messages=[
-            {"role": "system", "content": _SLUG_SYSTEM_PROMPT},
-            {"role": "user", "content": title},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_text},
         ],
     )
     raw = (response.choices[0].message.content or "").strip().lower()
-    # Sanitize: keep only word chars and underscores, collapse runs.
-    import re
-    slug = re.sub(r"[^\w]+", "_", raw).strip("_")
-    return slug or "untitled"
+    return re.sub(r"[^\w]+", "_", raw).strip("_")
+
+
+def _author_slug(author: str) -> str:
+    """Extract the last name from 'First Last' or 'Last, First' and slugify it."""
+    author = author.strip()
+    if "," in author:
+        last = author.split(",")[0]
+    else:
+        last = author.split()[-1] if author else author
+    return re.sub(r"[^\w]+", "_", last.lower()).strip("_")
+
+
+def simplify_title(
+    title: str,
+    author: str = "",
+    venue: str = "",
+    year: int | None = None,
+) -> str:
+    """Return a compound filename slug: <title>-<author>-<venue>-<year>."""
+    title_slug = _llm_slug(_TITLE_SLUG_PROMPT, title) or "untitled"
+
+    parts = [title_slug]
+
+    if author:
+        parts.append(_author_slug(author) or "unknown")
+
+    if venue:
+        venue_slug = _llm_slug(_VENUE_SLUG_PROMPT, venue) or re.sub(r"[^\w]+", "_", venue.lower()).strip("_")
+        parts.append(venue_slug)
+
+    if year:
+        parts.append(str(year))
+
+    return "-".join(parts)
 
 
 def generate_answer(query: str, context_chunks: list[dict]) -> dict:
