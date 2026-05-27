@@ -6,6 +6,21 @@ Archive to `history/YYYY-MM.md` when this file exceeds 200 lines (keep 10 most r
 
 ---
 
+## [2026-05-27] claude-sonnet-4-6 — added root README.md for GitHub repo
+
+**Action:** Created `README.md` at the repo root covering project overview, architecture diagram, repo layout, local dev quick start, full API reference with examples, Proxmox deployment instructions, configuration table, and links to further reading.
+
+**Files changed:**
+- `README.md` — created at repo root
+- `VERSION.md` — bumped to `rag-system-v0.1.5`
+- `AGENT_LOG.md` — prepended this entry
+
+**Decisions:** Replaced the existing `rag-system/README.md` scope (which was deploy-focused) with a full project README at the root that serves both human readers and GitHub. Kept `rag-system/README.md` in place as a deployment quick-reference since it is still useful inside the LXC context.
+
+**Open items:** None.
+
+---
+
 ## [2026-05-27] codex-gpt5 — bumped version after architecture/log documentation fix
 
 **Action:** Updated `VERSION.md` from `rag-system-v0.1.3` to `rag-system-v0.1.4` to reflect the completed documentation synchronization work from the previous task.
